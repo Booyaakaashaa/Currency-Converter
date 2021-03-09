@@ -1,2 +1,3 @@
-coni = int(input())
-print(f'I have {coni} conicoins.\n{coni} conicoins cost {coni * 100} dollars.\nI am rich! Yippee!')
+coni = int(input('Please, enter the number of conicoins you have: '))
+rate = int(input('Please, enter the exchange rate: '))
+print(f'The total amount of dollars: {coni * rate}')
