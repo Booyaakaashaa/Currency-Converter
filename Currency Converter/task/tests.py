@@ -5,47 +5,36 @@ from hstest.stage_test import StageTest
 from hstest.test_case import TestCase
 
 
-class TestStage2(StageTest):
+class TestStage3(StageTest):
 
     def generate(self) -> List[TestCase]:
         list_tests = [
-            TestCase(stdin='42', attach=['42', '4200']),
-            TestCase(stdin='75', attach=['75', '7500'])
+            TestCase(stdin=['13', '2'], attach=26),
+            TestCase(stdin=['128', '3.21'], attach=410.88),
+            TestCase(stdin=['75', '5.5'], attach=412.5)
 
         ]
 
         return list_tests
 
     def check(self, reply: str, attach) -> CheckResult:
-        reply_parsed = reply.strip().split('\n')
-        if len(reply_parsed) != 3:
-            return CheckResult.wrong("Check your output")
-        first_parsed = reply_parsed[0].split()
-        if len(first_parsed) != 4:
-            return CheckResult.wrong("Check your first line")
-        try:
-            amount = int(first_parsed[2])
-        except ValueError:
-            return CheckResult.wrong("Format your output"
-                                     "according to the example")
-        if amount != int(attach[0]):
-            return CheckResult.wrong("The amount of money is wrong")
-        second_parsed = reply_parsed[1].split()
-        if len(second_parsed) != 5:
-            return CheckResult.wrong("Check your second line")
-        try:
-            amount = int(second_parsed[0])
-            dollars = int(second_parsed[3])
-        except ValueError:
-            return CheckResult.wrong("Format your output"
-                                     "according to the example")
-        if amount != int(attach[0]) or dollars != int(attach[1]):
-            return CheckResult.wrong("The amount of monet is wrong")
-        if "i am rich" not in reply_parsed[2].lower():
+        reply_parsed = [i.strip() for i in reply.split(':')]
+        if len(reply_parsed) != 4:
             return CheckResult.wrong("Your output differs from the example")
-
+        if "please, enter the number of conicoins you have" not in reply_parsed[0].lower():
+            return CheckResult.wrong("The program should ask for the conicoins input")
+        if "please, enter the exchange rate" not in reply_parsed[1].lower():
+            return CheckResult.wrong("The program should ask for the exchange rate input")
+        if "the total amount of dollars" not in reply_parsed[2].lower():
+            return CheckResult.wrong("The program should output the total amount of dollars")
+        try:
+            dollars_amount = float(reply_parsed[3])
+        except ValueError:
+            return CheckResult.wrong("It seems that the output format for the amount of dollars is incorrect.")
+        if abs(dollars_amount - attach) > 0.2:
+            return CheckResult.wrong("The amount of dollars is wrong")
         return CheckResult.correct()
 
 
 if __name__ == '__main__':
-    TestStage2("cconverter.cconverter").run_tests()
+    TestStage3("cconverter.cconverter").run_tests()
