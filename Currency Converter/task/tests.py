@@ -5,36 +5,55 @@ from hstest.stage_test import StageTest
 from hstest.test_case import TestCase
 
 
-class TestStage3(StageTest):
+class TestStage4(StageTest):
 
     def generate(self) -> List[TestCase]:
         list_tests = [
-            TestCase(stdin=['13', '2'], attach=26),
-            TestCase(stdin=['128', '3.21'], attach=410.88),
-            TestCase(stdin=['75', '5.5'], attach=412.5)
+            TestCase(stdin='17', attach=[17]),
+            TestCase(stdin='3.5', attach=[3.5]),
+            TestCase(stdin='21', attach=[21]),
+            TestCase(stdin='4.5', attach=[4.5])
 
         ]
+
+        currs = {'rub': 2.98, 'ars': 0.82, 'hnl': 0.17, 'aud': 1.9622, 'mad': 0.208}
+        for test in list_tests:
+            attach_dict = {}
+            for k, v in currs.items():
+                attach_dict[k] = round(v * float(test.input), 2)
+            test.attach.append(attach_dict)
 
         return list_tests
 
     def check(self, reply: str, attach) -> CheckResult:
-        reply_parsed = [i.strip() for i in reply.split(':')]
-        if len(reply_parsed) != 4:
+        ccoins_att, currs_att = attach
+        reply_parsed = reply.strip().split('\n')
+        if len(reply_parsed) != 5:
             return CheckResult.wrong("Your output differs from the example")
-        if "please, enter the number of conicoins you have" not in reply_parsed[0].lower():
-            return CheckResult.wrong("The program should ask for the conicoins input")
-        if "please, enter the exchange rate" not in reply_parsed[1].lower():
-            return CheckResult.wrong("The program should ask for the exchange rate input")
-        if "the total amount of dollars" not in reply_parsed[2].lower():
-            return CheckResult.wrong("The program should output the total amount of dollars")
-        try:
-            dollars_amount = float(reply_parsed[3])
-        except ValueError:
-            return CheckResult.wrong("It seems that the output format for the amount of dollars is incorrect.")
-        if abs(dollars_amount - attach) > 0.2:
-            return CheckResult.wrong("The amount of dollars is wrong")
+        for repl in reply_parsed:
+            repl = repl.lower()
+            repl_parsed = repl.strip().split()
+            if len(repl_parsed) != 11:
+                return CheckResult.wrong("Your output differs from the example")
+            try:
+                cur = float(repl_parsed[3])
+                ccoins = float(repl_parsed[-2])
+                key = repl_parsed[4]
+            except (ValueError, KeyError):
+                return CheckResult.wrong("Format your output according to the example")
+            if ccoins != ccoins_att:
+                return CheckResult.wrong("The amount of conicoins is wrong")
+            try:
+                amount_curr = currs_att[key]
+            except KeyError:
+                return CheckResult.wrong("The currency name in the output of your program seems to be wrong:\n"
+                                         "\"{0}\"".format(key.upper()))
+            if abs(amount_curr - cur) > 0.2:
+                return CheckResult.wrong(f"The amount of {key.upper()} is wrong")
+            if not ('i will get' in repl and 'from the sale of' in repl and 'conicoins' in repl):
+                return CheckResult.wrong("Format your output according to the example")
         return CheckResult.correct()
 
 
 if __name__ == '__main__':
-    TestStage3("cconverter.cconverter").run_tests()
+    TestStage4("cconverter.cconverter").run_tests()
